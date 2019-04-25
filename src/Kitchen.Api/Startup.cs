@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Steeltoe.CloudFoundry.Connector.MySql.EFCore;
+using Steeltoe.Extensions.Configuration.CloudFoundry;
+using Steeltoe.Management.CloudFoundry;
 
 namespace Kitchen.Api
 {
@@ -23,10 +25,13 @@ namespace Kitchen.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.ConfigureCloudFoundryOptions(Configuration);
+            services.AddCloudFoundryActuators(Configuration);
+
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 if (HostingEnvironment.IsDevelopment())
-                    options.UseInMemoryDatabase("Kitchen.Api"); // in-memory for local development
+                    options.UseInMemoryDatabase("Kitchen.Api"); // In-Memory for local development
                 else
                     options.UseMySql(Configuration); // Steeltoe MySql connector for PCF
             });
@@ -43,12 +48,7 @@ namespace Kitchen.Api
                 app.UseDeveloperExceptionPage();
             }
 
-            using (var scope = app.ApplicationServices.CreateScope()) // demo purposes only
-            {
-                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-                Seed.SeedData(context);
-            }
+            Seed.SeedApplication(app.ApplicationServices); // demo purposes only
 
             app.UseCors(config =>
             {
@@ -57,7 +57,7 @@ namespace Kitchen.Api
                 config.AllowAnyHeader();
             });
 
-            app.UseMvcWithDefaultRoute();
+            app.UseMvc();
         }
     }
 }

@@ -1,9 +1,11 @@
 ﻿using Kitchen.Api.Data;
+using Kitchen.Api.Exceptions;
 using Kitchen.Api.Models;
 using Kitchen.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -17,9 +19,14 @@ namespace Kitchen.Test.Services
         public InventoryRepositoryTests()
         {
             var builder = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase("inventory_db");
+                .UseInMemoryDatabase(Guid.NewGuid().ToString());
 
             _context = new ApplicationDbContext(builder.Options);
+        }
+
+        private IInventoryRepository CreateService()
+        {
+            return new InventoryRepository(_context);
         }
 
         [Fact]
@@ -31,7 +38,7 @@ namespace Kitchen.Test.Services
 
             _context.SaveChanges();
 
-            IInventoryRepository repository = new InventoryRepository(_context);
+            IInventoryRepository repository = CreateService();
 
             var allCupcakes = await repository.GetAllAsync();
 
@@ -39,9 +46,38 @@ namespace Kitchen.Test.Services
         }
 
         [Fact]
+        public async Task GetByIdAsync_returns_cupcake_with_matching_id()
+        {
+            _context.Cupcakes.Add(new Cupcake { Id = 1, Name = "First Cupcake" });
+            _context.Cupcakes.Add(new Cupcake { Id = 2, Name = "Second Cupcake" });
+
+            _context.SaveChanges();
+
+            IInventoryRepository repository = CreateService();
+
+            var secondCupcake = await repository.GetByIdAsync(2);
+
+            Assert.Equal(2, secondCupcake.Id);
+            Assert.Equal("Second Cupcake", secondCupcake.Name);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_throws_if_there_is_no_cupcake_with_matching_id()
+        {
+            _context.Cupcakes.Add(new Cupcake { Id = 1, Name = "Highlander Cupcake" });
+
+            _context.SaveChanges();
+
+            IInventoryRepository repository = CreateService();
+
+            var ex = await Assert.ThrowsAsync<ProductNotFoundException>(() => repository.GetByIdAsync(999));
+            Assert.Equal(HttpStatusCode.NotFound, ex.Status);
+        }
+
+        [Fact]
         public async Task AddAsync_inserts_model_into_repository()
         {
-            IInventoryRepository repository = new InventoryRepository(_context);
+            IInventoryRepository repository = CreateService();
 
             Cupcake cupcake = new Cupcake { Name = "FooBar Sprinkles" };
 
@@ -55,7 +91,7 @@ namespace Kitchen.Test.Services
         [Fact]
         public void AddAsync_throws_if_model_is_null()
         {
-            IInventoryRepository repository = new InventoryRepository(_context);
+            IInventoryRepository repository = CreateService();
 
 
             Cupcake cupcake = null;
