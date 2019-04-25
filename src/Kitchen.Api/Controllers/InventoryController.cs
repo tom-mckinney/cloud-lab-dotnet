@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using CloudLab.Web.Models;
-using CloudLab.Web.Services;
+using Kitchen.Api.Models;
+using Kitchen.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CloudLab.Web.Controllers
+namespace Kitchen.Api.Controllers
 {
     public class InventoryController : Controller
     {
@@ -19,11 +16,9 @@ namespace CloudLab.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public Task<List<Cupcake>> Index()
         {
-            IList<Cupcake> cupcakes = await _inventoryRepository.GetAllAsync();
-
-            return Ok(cupcakes);
+            return _inventoryRepository.GetAllAsync();
         }
     }
 }

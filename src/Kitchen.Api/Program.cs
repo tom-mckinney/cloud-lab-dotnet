@@ -7,8 +7,9 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Steeltoe.Extensions.Configuration.CloudFoundry;
 
-namespace CloudLab.Web
+namespace Kitchen.Api
 {
     public class Program
     {
@@ -19,6 +20,11 @@ namespace CloudLab.Web
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseCloudFoundryHosting()
+                .ConfigureAppConfiguration((context, config) =>
+                {
+                    config.AddCloudFoundry();
+                })
                 .UseStartup<Startup>();
     }
 }

@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CloudLab.Web.Data;
-using CloudLab.Web.Models;
+using Kitchen.Api.Data;
+using Kitchen.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace CloudLab.Web.Services
+namespace Kitchen.Api.Services
 {
     public interface IInventoryRepository
     {
         Task<List<Cupcake>> GetAllAsync();
+        Task AddAsync(Cupcake cupcake);
     }
 
     public class InventoryRepository : IInventoryRepository
@@ -25,6 +26,18 @@ namespace CloudLab.Web.Services
         public Task<List<Cupcake>> GetAllAsync()
         {
             return _context.Cupcakes.AsNoTracking().ToListAsync();
+        }
+
+        public async Task AddAsync(Cupcake cupcake)
+        {
+            if (cupcake == null)
+            {
+                throw new ArgumentException("Cupcake cannot be null", nameof(cupcake));
+            }
+
+            _context.Cupcakes.Add(cupcake);
+
+            await _context.SaveChangesAsync();
         }
     }
 }

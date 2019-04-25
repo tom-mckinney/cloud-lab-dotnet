@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CloudLab.Web.Models;
+using Kitchen.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace CloudLab.Web.Data
+namespace Kitchen.Api.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<DbContext> options) : base(options) { }
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options)
+        {
+        }
 
         public DbSet<Cupcake> Cupcakes { get; set; }
     }
